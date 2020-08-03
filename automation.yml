@@ -1,0 +1,49 @@
+- hosts: all
+  tasks:
+          
+     - name: "add docker repo"
+       yum_repository:
+               name: docker
+               description: docker repo
+               file: docker
+               baseurl: https://download.docker.com/linux/centos/7/x86_64/stable/
+               gpgcheck: no
+
+     - name: "installing docker"
+       yum:
+               name: "docker-ce"
+               skip_broken: yes
+               state: present   
+
+     - name: "starting docker services"
+       service: 
+            name: docker
+            state: started
+            enabled: yes
+     - name: "extra packages"
+       command: "pip3 install docker"
+
+     - name: "image pull"
+       docker_image:
+               name: httpd
+               source: pull
+
+     - name: "folder inside image"
+       file:
+               path: /page
+               state: directory
+
+     - name: "copy files from CN to MN"
+       copy:
+               src: "index.html"
+               dest: "/page/"
+
+     - name: "container"
+       docker_container:
+          name: "mycontainer"
+          image: httpd
+          state: started
+          exposed_ports: "80"
+          ports: "3267:80"
+          volumes: "/page:/usr/local/apache2/htdocs/"       
+
